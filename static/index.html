@@ -60,13 +60,15 @@ header p{margin:9px 0 0; color:var(--fg-dim); font-size:15.5px; text-wrap:balanc
   border-radius:16px; padding:20px;
 }
 label{display:block; font:500 14px/1.4 var(--font-body); color:var(--fg-dim); margin-bottom:9px}
-textarea{
-  width:100%; min-height:170px; resize:vertical;
+label.spaced{margin-top:15px}
+textarea,input[type=text]{
+  width:100%; display:block;
   background:var(--bg); color:var(--fg);
   border:1px solid var(--line); border-radius:11px; padding:13px 14px;
   font:400 15.5px/1.6 var(--font-body);
 }
-textarea:focus-visible,button:focus-visible{outline:2px solid var(--sap); outline-offset:2px}
+textarea{min-height:150px; resize:vertical}
+textarea:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--sap); outline-offset:2px}
 
 .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
 button{
@@ -136,8 +138,13 @@ footer p{margin:0; max-width:40ch; margin-inline:auto}
   </header>
 
   <form class="card" id="form">
-    <label for="story">The story</label>
-    <textarea id="story" name="story" placeholder="Paste the headline and the article here…">SHOCKING!! Doctors STUNNED by this ONE WEIRD TRICK the government has been HIDING from you for decades!!! Share this before they DELETE it!! What the mainstream media REFUSES to tell you about what is really going on. Experts are SPEECHLESS.</textarea>
+    <label for="headline">Headline</label>
+    <input type="text" id="headline" name="headline" autocomplete="off"
+           placeholder="Paste the headline here…"
+           value="SHOCKING!! Doctors STUNNED by this ONE WEIRD TRICK the government has been HIDING from you for decades!!!">
+
+    <label for="story" class="spaced">The story</label>
+    <textarea id="story" name="story" placeholder="Paste the rest of the article here…">Share this before they DELETE it!! What the mainstream media REFUSES to tell you about what is really going on. Experts are SPEECHLESS.</textarea>
     <div class="actions">
       <button type="submit" id="go">Check it</button>
       <button type="button" class="quiet" id="example">Try a real one</button>
@@ -159,8 +166,7 @@ footer p{margin:0; max-width:40ch; margin-inline:auto}
   <div id="problem"></div>
 
   <footer>
-    <p>This goes on writing style, not facts. A tidy lie can slip past it and a scruffy
-      true story can trip it up, so treat it as a second opinion.</p>
+    <p>Well, believe at your own risk haha.</p>
   </footer>
 </div>
 
@@ -234,8 +240,9 @@ footer p{margin:0; max-width:40ch; margin-inline:auto}
   $("form").addEventListener("submit", function (e) {
     e.preventDefault();
     clearProblem();
+    var headline = $("headline").value.trim();
     var story = $("story").value.trim();
-    if (!story) {
+    if (!headline && !story) {
       problem("Paste a story in first and I'll take a look.");
       return;
     }
@@ -256,7 +263,7 @@ footer p{margin:0; max-width:40ch; margin-inline:auto}
     fetch("/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "", text: story }),
+      body: JSON.stringify({ title: headline, text: story }),
       signal: ctrl.signal
     })
       .then(function (r) {
@@ -280,19 +287,20 @@ footer p{margin:0; max-width:40ch; margin-inline:auto}
   });
 
   $("example").addEventListener("click", function () {
-    $("story").value = "Senate panel advances bipartisan infrastructure bill after weeks of negotiation. " +
-      "The committee voted 18-12 on Thursday to send the measure to the full chamber, according to a " +
-      "spokesperson for the chair. The bill would authorise spending over five years on roads, bridges " +
-      "and broadband, and now awaits floor time that leadership has not yet scheduled.";
+    $("headline").value = "Senate panel advances bipartisan infrastructure bill after weeks of negotiation";
+    $("story").value = "The committee voted 18-12 on Thursday to send the measure to the full chamber, " +
+      "according to a spokesperson for the chair. The bill would authorise spending over five years on " +
+      "roads, bridges and broadband, and now awaits floor time that leadership has not yet scheduled.";
     hide($("verdict"));
     clearProblem();
   });
 
   $("clear").addEventListener("click", function () {
+    $("headline").value = "";
     $("story").value = "";
     hide($("verdict"));
     clearProblem();
-    $("story").focus();
+    $("headline").focus();
   });
 })();
 </script>
