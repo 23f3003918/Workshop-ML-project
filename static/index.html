@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Real or Not</title>
+<style>
+/* Layout: one narrow centred column. Paste box, one button, a big friendly
+   verdict. Sage ground, sap green for the reassuring end of the scale,
+   ochre for the alarming end. */
+:root{
+  --bg:#f1f4ea; --surface:#fbfcf7; --surface-2:#e7ecdb;
+  --fg:#23301e; --fg-dim:#5e6b56; --line:#d6dec8;
+  --sage:#8fa27c; --sap:#4f7942; --sap-soft:#e0ead9;
+  --ochre:#a8761e; --ochre-soft:#f5ead4;
+  /* System fonts, not web fonts -- nothing is downloaded. Papyrus ships with
+     Windows and macOS; Calibri with Windows and Office. Elsewhere the
+     fallbacks take over. Swap the display stack for the body one if the
+     headline ever stops being funny. */
+  --font-display:Papyrus,"Bradley Hand","Segoe Print",fantasy;
+  --font-body:Calibri,Carlito,"Segoe UI",-apple-system,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#171b14; --surface:#1f241b; --surface-2:#2a3124;
+  --fg:#e8ede0; --fg-dim:#a2ac97; --line:#333b2c;
+  --sage:#8fa27c; --sap:#8bbd72; --sap-soft:#223019;
+  --ochre:#d9a441; --ochre-soft:#332818;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#171b14; --surface:#1f241b; --surface-2:#2a3124;
+  --fg:#e8ede0; --fg-dim:#a2ac97; --line:#333b2c;
+  --sage:#8fa27c; --sap:#8bbd72; --sap-soft:#223019;
+  --ochre:#d9a441; --ochre-soft:#332818;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none !important}
+body{
+  background:var(--bg); color:var(--fg);
+  font:400 16px/1.6 var(--font-body);
+  padding-inline:16px; padding-block:46px 56px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:540px; margin:0 auto; display:flex; flex-direction:column; gap:26px}
+
+header{text-align:center}
+/* Papyrus has no true bold and already carries wide sidebearings, so it gets
+   regular weight, more size, and no negative tracking. */
+h1{
+  font:400 42px/1.15 var(--font-display); margin:0;
+  letter-spacing:.005em; text-wrap:balance; color:var(--sap);
+}
+header p{margin:9px 0 0; color:var(--fg-dim); font-size:15.5px; text-wrap:balance}
+
+.card{
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:16px; padding:20px;
+}
+label{display:block; font:500 14px/1.4 var(--font-body); color:var(--fg-dim); margin-bottom:9px}
+textarea{
+  width:100%; min-height:170px; resize:vertical;
+  background:var(--bg); color:var(--fg);
+  border:1px solid var(--line); border-radius:11px; padding:13px 14px;
+  font:400 15.5px/1.6 var(--font-body);
+}
+textarea:focus-visible,button:focus-visible{outline:2px solid var(--sap); outline-offset:2px}
+
+.actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+button{
+  font:600 15.5px/1 var(--font-body); padding:13px 22px; border-radius:11px;
+  border:1px solid transparent; background:var(--sap); color:#fbfcf7; cursor:pointer;
+  transition:transform .12s ease, filter .12s ease;
+}
+button.quiet{background:transparent; color:var(--fg-dim); border-color:var(--line)}
+button:hover:not(:disabled){filter:brightness(1.07)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.55; cursor:not-allowed}
+
+/* verdict */
+.verdict{
+  text-align:center; border-radius:16px; padding:30px 22px;
+  border:1px solid var(--line); background:var(--surface-2);
+}
+.verdict.real{background:var(--sap-soft); border-color:var(--sap)}
+.verdict.fake{background:var(--ochre-soft); border-color:var(--ochre)}
+.face{
+  font-size:62px; line-height:1; display:block; margin-bottom:14px;
+  animation:pop .5s cubic-bezier(.3,1.5,.5,1) both, float 3.6s ease-in-out 1s infinite;
+}
+.verdict h2{
+  font:400 30px/1.3 var(--font-display); margin:0;
+  text-wrap:balance; letter-spacing:.005em;
+}
+.verdict.real h2{color:var(--sap)}
+.verdict.fake h2{color:var(--ochre)}
+.verdict p{margin:11px auto 0; max-width:34ch; color:var(--fg-dim); font-size:15px;
+  text-wrap:balance}
+
+@keyframes pop{
+  from{transform:scale(.3) rotate(-14deg); opacity:0}
+  to{transform:scale(1) rotate(0); opacity:1}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0) rotate(0)}
+  50%{transform:translateY(-7px) rotate(3deg)}
+}
+@keyframes blink{0%,100%{opacity:.25} 50%{opacity:1}}
+.thinking{text-align:center; color:var(--fg-dim); font-size:15px}
+.thinking .face{animation:float 1.6s ease-in-out infinite}
+.thinking b{font-weight:400}
+.thinking i{font-style:normal; animation:blink 1.2s infinite}
+.thinking i:nth-child(2){animation-delay:.2s}
+.thinking i:nth-child(3){animation-delay:.4s}
+
+.note{
+  border-radius:12px; padding:14px 16px; font-size:14.5px;
+  background:var(--ochre-soft); color:var(--fg); border:1px solid var(--ochre);
+}
+footer{text-align:center; color:var(--fg-dim); font-size:13.5px; line-height:1.55}
+footer p{margin:0; max-width:40ch; margin-inline:auto}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Real or Not</h1>
+    <p>Paste a news story and I'll tell you how it reads.</p>
+  </header>
+
+  <form class="card" id="form">
+    <label for="story">The story</label>
+    <textarea id="story" name="story" placeholder="Paste the headline and the article here…">SHOCKING!! Doctors STUNNED by this ONE WEIRD TRICK the government has been HIDING from you for decades!!! Share this before they DELETE it!! What the mainstream media REFUSES to tell you about what is really going on. Experts are SPEECHLESS.</textarea>
+    <div class="actions">
+      <button type="submit" id="go">Check it</button>
+      <button type="button" class="quiet" id="example">Try a real one</button>
+      <button type="button" class="quiet" id="clear">Clear</button>
+    </div>
+  </form>
+
+  <div class="thinking" id="thinking" hidden>
+    <span class="face">📰</span>
+    <b>Having a read<i>.</i><i>.</i><i>.</i></b>
+  </div>
+
+  <section class="verdict" id="verdict" hidden aria-live="polite">
+    <span class="face" id="face">🤔</span>
+    <h2 id="line"></h2>
+    <p id="note"></p>
+  </section>
+
+  <div id="problem"></div>
+
+  <footer>
+    <p>This goes on writing style, not facts. A tidy lie can slip past it and a scruffy
+      true story can trip it up, so treat it as a second opinion.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+
+  // Ordered low to high on "how fake does this read". First band whose
+  // ceiling the score falls under wins.
+  var BANDS = [
+    { under: 0.05, tone: "real", face: "🌿",
+      line: "Pretty sure it's real",
+      note: "This reads like an ordinary news story." },
+    { under: 0.25, tone: "real", face: "🙂",
+      line: "Probably real",
+      note: "Nothing in here raises much of an eyebrow." },
+    { under: 0.45, tone: "real", face: "🧐",
+      line: "Leaning real",
+      note: "Mostly reads straight, with the odd funny note." },
+    { under: 0.55, tone: "", face: "🤷",
+      line: "Could honestly go either way",
+      note: "This one sits right on the fence. Your guess is as good as mine." },
+    { under: 0.75, tone: "fake", face: "😬",
+      line: "Hmm, this might be fake",
+      note: "There's a bit of a tabloid flavour to the writing." },
+    { under: 0.95, tone: "fake", face: "🚩",
+      line: "This looks fake",
+      note: "Shouty, breathless, and light on anyone actually saying anything." },
+    { under: 2, tone: "fake", face: "🔥",
+      line: "Oh yeah, this is definitely fake",
+      note: "Just about every signal points the same way." }
+  ];
+
+  function band(score) {
+    for (var i = 0; i < BANDS.length; i++) {
+      if (score < BANDS[i].under) { return BANDS[i]; }
+    }
+    return BANDS[BANDS.length - 1];
+  }
+
+  function show(el) { el.hidden = false; }
+  function hide(el) { el.hidden = true; }
+
+  function problem(text) {
+    $("problem").innerHTML = '<div class="note"></div>';
+    $("problem").firstChild.textContent = text;
+  }
+  function clearProblem() { $("problem").textContent = ""; }
+
+  function reveal(data) {
+    var score = typeof data.p_fake === "number"
+      ? data.p_fake
+      : (data.prediction === 1 || data.verdict === "fake" ? 0.99 : 0.01);
+    var b = band(score);
+
+    $("verdict").className = "verdict" + (b.tone ? " " + b.tone : "");
+    $("line").textContent = b.line;
+    $("note").textContent = b.note;
+
+    // Re-trigger the pop each time rather than only on first paint.
+    var face = $("face");
+    face.textContent = b.face;
+    face.style.animation = "none";
+    void face.offsetWidth;
+    face.style.animation = "";
+
+    show($("verdict"));
+  }
+
+  $("form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    clearProblem();
+    var story = $("story").value.trim();
+    if (!story) {
+      problem("Paste a story in first and I'll take a look.");
+      return;
+    }
+
+    hide($("verdict"));
+    show($("thinking"));
+    $("go").disabled = true;
+
+    // The free host puts the service to sleep when nobody's using it, and
+    // waking it back up takes a while.
+    var slow = window.setTimeout(function () {
+      problem("Still going. The first check after a quiet spell takes about a minute while everything wakes up.");
+    }, 6000);
+
+    var ctrl = new AbortController();
+    var bail = window.setTimeout(function () { ctrl.abort(); }, 90000);
+
+    fetch("/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "", text: story }),
+      signal: ctrl.signal
+    })
+      .then(function (r) {
+        if (!r.ok) { throw new Error("bad status"); }
+        return r.json();
+      })
+      .then(function (data) { clearProblem(); reveal(data); })
+      .catch(function (err) {
+        if (err.name === "AbortError") {
+          problem("That took too long, so I gave up. Try again in a moment.");
+        } else {
+          problem("I couldn't get an answer just now. Give it another go in a moment.");
+        }
+      })
+      .then(function () {
+        window.clearTimeout(slow);
+        window.clearTimeout(bail);
+        hide($("thinking"));
+        $("go").disabled = false;
+      });
+  });
+
+  $("example").addEventListener("click", function () {
+    $("story").value = "Senate panel advances bipartisan infrastructure bill after weeks of negotiation. " +
+      "The committee voted 18-12 on Thursday to send the measure to the full chamber, according to a " +
+      "spokesperson for the chair. The bill would authorise spending over five years on roads, bridges " +
+      "and broadband, and now awaits floor time that leadership has not yet scheduled.";
+    hide($("verdict"));
+    clearProblem();
+  });
+
+  $("clear").addEventListener("click", function () {
+    $("story").value = "";
+    hide($("verdict"));
+    clearProblem();
+    $("story").focus();
+  });
+})();
+</script>
+</body>
+</html>

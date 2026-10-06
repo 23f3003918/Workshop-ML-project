@@ -1,0 +1,10 @@
+# Web
+fastapi==0.122.0
+uvicorn==0.40.0
+pydantic==2.13.2
+
+# Model loading and inference.
+scikit-learn==1.9.1
+scipy==1.18.1
+numpy==2.5.3
+joblib==1.6.0
